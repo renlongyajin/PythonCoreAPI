@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import os
+from collections.abc import Generator
 
 import pytest
 
@@ -10,7 +10,7 @@ from app.core.config import Settings, get_settings
 
 
 @pytest.fixture(autouse=True)
-def clear_settings_cache() -> None:
+def clear_settings_cache() -> Generator[None, None, None]:
     """在测试前后清理 Settings 缓存，保证环境变量生效。"""
 
     get_settings.cache_clear()

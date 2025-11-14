@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
 import importlib
 
 import pytest
@@ -10,7 +11,7 @@ from app.core.config import get_settings
 
 
 @pytest.fixture(autouse=True)
-def reset_settings_cache() -> None:
+def reset_settings_cache() -> Generator[None, None, None]:
     """每个测试前后清理配置缓存。"""
 
     get_settings.cache_clear()
