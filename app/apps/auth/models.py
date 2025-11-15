@@ -1,0 +1,58 @@
+"""用户、角色及其关联模型。"""
+
+from __future__ import annotations
+
+from typing import List
+
+from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.db.base import Base
+
+
+class User(Base):
+    """系统登录用户。"""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    roles: Mapped[List["Role"]] = relationship(
+        secondary="user_roles",
+        back_populates="users",
+        lazy="selectin",
+    )
+
+
+class Role(Base):
+    """系统角色，用于 RBAC。"""
+
+    __tablename__ = "roles"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    users: Mapped[List[User]] = relationship(
+        secondary="user_roles",
+        back_populates="roles",
+        lazy="selectin",
+    )
+
+
+class UserRole(Base):
+    """用户与角色的关联表。"""
+
+    __tablename__ = "user_roles"
+    __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_role"),)
+
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    role_id: Mapped[int] = mapped_column(
+        ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True
+    )
