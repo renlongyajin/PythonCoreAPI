@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.health import router as health_router
+from app.apps.auth.router import router as auth_router
 from app.core.config import Settings, get_settings
 
 
@@ -37,3 +38,4 @@ def _register_routes(app: FastAPI, settings: Settings) -> None:
 
     api_prefix = f"{settings.api_prefix}/{settings.api_version}"  # 统一 API 版本路径
     app.include_router(health_router, prefix=api_prefix)
+    app.include_router(auth_router, prefix=api_prefix)

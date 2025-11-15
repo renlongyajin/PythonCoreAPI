@@ -41,6 +41,12 @@ class UserRepository:
         stmt = select(User).where(User.email == email)
         return db.execute(stmt).scalar_one_or_none()
 
+    def get_by_id(self, db: Session, user_id: int) -> User | None:
+        """通过主键获取用户。"""
+
+        stmt = select(User).where(User.id == user_id)
+        return db.execute(stmt).scalar_one_or_none()
+
     def list_roles(self, db: Session, user_id: int) -> Sequence[Role]:
         """列出用户角色。"""
 
