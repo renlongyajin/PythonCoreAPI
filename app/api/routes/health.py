@@ -11,7 +11,15 @@ router = APIRouter(tags=["health"])
 
 @router.get("/health", summary="健康检查", response_model=dict)
 def read_health(response: Response, settings: Settings = Depends(get_settings)) -> dict[str, str]:
-    """返回应用当前状态。"""
+    """返回应用当前状态。
+
+    Args:
+        response (Response): FastAPI 响应对象，用于设置缓存头。
+        settings (Settings): 配置实例，提供元数据。
+
+    Returns:
+        dict[str, str]: 健康状态及元信息。
+    """
 
     response.headers["Cache-Control"] = "no-store"  # 防止客户端缓存
     return {

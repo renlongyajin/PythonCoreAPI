@@ -19,13 +19,30 @@ from app.core.security import (
 
 
 class AuthService:
-    """封装用户注册、登录、刷新等业务逻辑。"""
+    """处理用户认证相关的业务逻辑。
+
+    主要提供注册、登录、token 生成与刷新等能力。
+    """
 
     def __init__(self, user_repo: UserRepository | None = None) -> None:
+        """初始化服务并注入仓储依赖。
+
+        Args:
+            user_repo (UserRepository | None): 可选的用户仓储实例，便于测试替换。
+        """
+
         self.user_repo = user_repo or UserRepository()
 
     def register(self, db: Session, data: UserCreate) -> User:
-        """注册新用户。"""
+        """根据提交的信息创建新用户。
+
+        Args:
+            db (Session): 数据库会话。
+            data (UserCreate): 包含邮箱、密码、姓名的请求体。
+
+        Returns:
+            User: 刚创建的用户实体。
+        """
 
         existing = self.user_repo.get_by_email(db, data.email)
         if existing:
@@ -40,7 +57,15 @@ class AuthService:
         )
 
     def authenticate(self, db: Session, credentials: LoginRequest) -> User:
-        """校验邮箱密码，返回用户。"""
+        """校验登录凭证并返回用户。
+
+        Args:
+            db (Session): 数据库会话。
+            credentials (LoginRequest): 用户提交的邮箱与密码。
+
+        Returns:
+            User: 验证通过的用户实体。
+        """
 
         user = self.user_repo.get_by_email(db, credentials.email)
         if not user or not verify_password(credentials.password, user.password_hash):
@@ -52,7 +77,15 @@ class AuthService:
         return user
 
     def build_token_pair(self, user_id: int, settings: Settings | None = None) -> TokenPair:
-        """生成一对 access/refresh token。"""
+        """基于用户 ID 生成 access/refresh token 对。
+
+        Args:
+            user_id (int): 目标用户 ID。
+            settings (Settings | None): 应用配置，可覆盖默认值。
+
+        Returns:
+            TokenPair: 包含 access/refresh token 的对象。
+        """
 
         config = settings or get_settings()
         access_token = create_access_token(user_id, config)
@@ -65,7 +98,15 @@ class AuthService:
         )
 
     def refresh(self, refresh_request: RefreshRequest, settings: Settings | None = None) -> TokenPair:
-        """使用 Refresh Token 生成新的 token 对。"""
+        """验证 refresh token 并生成新的 token 对。
+
+        Args:
+            refresh_request (RefreshRequest): 携带 refresh token 的请求体。
+            settings (Settings | None): 应用配置，可选。
+
+        Returns:
+            TokenPair: 新生成的 access/refresh token。
+        """
 
         config = settings or get_settings()
         payload = decode_token(refresh_request.refresh_token, config)

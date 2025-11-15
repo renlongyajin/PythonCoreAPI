@@ -10,14 +10,19 @@ from app.main import create_app
 
 @pytest.fixture(scope="module")
 def test_client() -> TestClient:
-    """构造 FastAPI 测试客户端。"""
+    """提供模块级别的 FastAPI TestClient。
+    """
 
     app = create_app()
     return TestClient(app)
 
 
 def test_health_endpoint_returns_ok_payload(test_client: TestClient) -> None:
-    """`GET /api/v1/health` 应返回固定的状态负载。"""
+    """验证健康检查接口 payload。
+
+    Args:
+        test_client (TestClient): 预置客户端。
+    """
 
     response = test_client.get("/api/v1/health")
     assert response.status_code == 200
@@ -30,7 +35,11 @@ def test_health_endpoint_returns_ok_payload(test_client: TestClient) -> None:
 
 
 def test_health_endpoint_includes_cache_headers(test_client: TestClient) -> None:
-    """响应应声明不可缓存，确保状态实时。"""
+    """验证健康检查响应头的缓存策略。
+
+    Args:
+        test_client (TestClient): 预置客户端。
+    """
 
     response = test_client.get("/api/v1/health")
     cache_control = response.headers.get("cache-control")

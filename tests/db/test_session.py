@@ -12,7 +12,11 @@ from app.core.config import get_settings
 
 @pytest.fixture(autouse=True)
 def reset_settings_cache() -> Generator[None, None, None]:
-    """每个测试前后清理配置缓存。"""
+    """在测试用例前后清空 Settings 缓存。
+
+    Returns:
+        Generator[None, None, None]: fixture 生命周期管理器。
+    """
 
     get_settings.cache_clear()
     yield
@@ -20,7 +24,11 @@ def reset_settings_cache() -> Generator[None, None, None]:
 
 
 def _reload_session_module():
-    """重新加载 session 模块以应用最新配置。"""
+    """重新加载数据库 session 模块。
+
+    Returns:
+        module: 重新导入后的 session 模块。
+    """
 
     import app.db.session as session
 
@@ -29,7 +37,11 @@ def _reload_session_module():
 
 
 def test_session_factory_uses_database_url(monkeypatch: pytest.MonkeyPatch) -> None:
-    """SessionLocal 应绑定到配置指定的数据库。"""
+    """验证 SessionLocal 绑定的数据库 URL。
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): 注入环境变量。
+    """
 
     monkeypatch.setenv("DATABASE_URL", "sqlite:///./pytest.db")
     session = _reload_session_module()
@@ -39,7 +51,11 @@ def test_session_factory_uses_database_url(monkeypatch: pytest.MonkeyPatch) -> N
 
 
 def test_get_db_yields_and_closes_session(monkeypatch: pytest.MonkeyPatch) -> None:
-    """get_db 生成器应在使用后关闭 Session。"""
+    """确保 get_db 生成器会关闭 Session。
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): 注入环境变量。
+    """
 
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     session = _reload_session_module()

@@ -8,7 +8,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """集中管理应用运行所需的环境配置。"""
+    """集中管理应用全局配置。
+
+    用于加载 .env 及环境变量，向 FastAPI 依赖注入提供统一数据源。
+    """
 
     app_name: str = "PythonCoreAPI"
     app_env: str = "development"
@@ -32,6 +35,12 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """获取全局单例 Settings，避免重复解析 .env。"""
+    """返回缓存的 Settings 单例。
+
+    FastAPI 依赖会调用此函数，确保配置只解析一次，提升性能。
+
+    Returns:
+        Settings: 已加载且缓存的配置实例。
+    """
 
     return Settings()

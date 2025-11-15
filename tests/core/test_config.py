@@ -11,7 +11,11 @@ from app.core.config import Settings, get_settings
 
 @pytest.fixture(autouse=True)
 def clear_settings_cache() -> Generator[None, None, None]:
-    """在测试前后清理 Settings 缓存，保证环境变量生效。"""
+    """自动清理 Settings 缓存。
+
+    Returns:
+        Generator[None, None, None]: fixture 管理的上下文。
+    """
 
     get_settings.cache_clear()
     yield
@@ -19,7 +23,7 @@ def clear_settings_cache() -> Generator[None, None, None]:
 
 
 def test_default_settings_values() -> None:
-    """默认配置应与文档描述一致。"""
+    """验证默认配置值与文档一致。"""
 
     settings = get_settings()
     assert isinstance(settings, Settings)
@@ -31,7 +35,11 @@ def test_default_settings_values() -> None:
 
 
 def test_settings_reads_environment_variables(monkeypatch: pytest.MonkeyPatch) -> None:
-    """环境变量应覆盖默认值。"""
+    """验证环境变量可覆盖默认配置。
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): 注入的环境变量工具。
+    """
 
     monkeypatch.setenv("APP_NAME", "TestAPI")
     monkeypatch.setenv("APP_ENV", "staging")
@@ -46,7 +54,7 @@ def test_settings_reads_environment_variables(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_get_settings_returns_cached_instance() -> None:
-    """连续调用应返回同一实例，避免重复解析配置。"""
+    """验证 Settings 缓存行为。"""
 
     first = get_settings()
     second = get_settings()

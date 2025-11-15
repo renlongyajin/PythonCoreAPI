@@ -13,7 +13,17 @@ from app.db.init_db import init_db, drop_db
 
 @pytest.fixture(name="db")
 def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None]:
-    """使用内存 SQLite 构造独立 Session。"""
+    """构造独立的内存数据库会话。
+
+    通过 monkeypatch 注入 SQLite 内存连接串，并调用 init_db/drop_db
+    保证每个测试互不影响。
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): pytest 提供的环境修改工具。
+
+    Returns:
+        Generator[Session, None, None]: 可用于数据库操作的会话生成器。
+    """
 
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
     reset_session_factory()
@@ -27,7 +37,13 @@ def db_session(monkeypatch: pytest.MonkeyPatch) -> Generator[Session, None, None
 
 
 def test_create_user_and_query_by_email(db: Session) -> None:
-    """创建用户后应能通过邮箱查询。"""
+    """验证创建用户后可通过邮箱查询。
+
+    该用例模拟注册流程，确保仓储写入与查询逻辑一致。
+
+    Args:
+        db (Session): 预置的内存数据库会话。
+    """
 
     from app.apps.auth.repository import RoleRepository, UserRepository
 
@@ -46,7 +62,13 @@ def test_create_user_and_query_by_email(db: Session) -> None:
 
 
 def test_assign_roles_to_user(db: Session) -> None:
-    """用户与角色的多对多关联应能写入与读取。"""
+    """验证用户角色多对多操作。
+
+    覆盖角色创建与 `set_roles` 的行为，确保关联表写入成功。
+
+    Args:
+        db (Session): 预置的内存数据库会话。
+    """
 
     from app.apps.auth.repository import RoleRepository, UserRepository
 

@@ -11,7 +11,11 @@ from app.core.config import Settings, get_settings
 
 
 def create_app() -> FastAPI:
-    """构建并返回 FastAPI 应用。"""
+    """构建并返回 FastAPI 应用实例。
+
+    Returns:
+        FastAPI: 已注册中间件与路由的应用。
+    """
 
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version=settings.api_version)
@@ -22,7 +26,11 @@ def create_app() -> FastAPI:
 
 
 def _register_middlewares(app: FastAPI) -> None:
-    """注册全局中间件。"""
+    """注册全局中间件，如 CORS。"
+
+    Args:
+        app (FastAPI): 目标应用实例。
+    """
 
     app.add_middleware(
         CORSMiddleware,
@@ -34,7 +42,12 @@ def _register_middlewares(app: FastAPI) -> None:
 
 
 def _register_routes(app: FastAPI, settings: Settings) -> None:
-    """挂载所有路由。"""
+    """结合配置挂载各功能路由。
+
+    Args:
+        app (FastAPI): 应用实例。
+        settings (Settings): 配置，用于确定前缀。
+    """
 
     api_prefix = f"{settings.api_prefix}/{settings.api_version}"  # 统一 API 版本路径
     app.include_router(health_router, prefix=api_prefix)

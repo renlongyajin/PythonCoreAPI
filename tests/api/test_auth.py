@@ -14,7 +14,12 @@ from app.db.session import reset_session_factory
 
 @pytest.fixture(name="client")
 def client_fixture(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Generator[TestClient, None, None]:
-    """构造携带独立数据库的 TestClient。"""
+    """构造携带独立数据库的 TestClient。
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch): 环境变量注入工具。
+        tmp_path (Path): pytest 提供的临时目录。
+    """
 
     db_file = tmp_path / "auth.sqlite"
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_file}")
@@ -32,13 +37,24 @@ def client_fixture(monkeypatch: pytest.MonkeyPatch, tmp_path) -> Generator[TestC
 
 
 def _register_user(client: TestClient, email: str = "user@example.com", password: str = "StrongPass123") -> None:
+    """辅助函数：注册测试用户。
+
+    Args:
+        client (TestClient): FastAPI 测试客户端。
+        email (str): 注册邮箱。
+        password (str): 明文密码。
+    """
     payload = {"email": email, "password": password, "full_name": "Tester"}
     response = client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 201
 
 
 def test_register_user_returns_basic_profile(client: TestClient) -> None:
-    """注册接口应返回用户基础信息，不包含密码。"""
+    """验证注册接口返回的用户资料。
+
+    Args:
+        client (TestClient): 测试客户端。
+    """
 
     payload = {"email": "alice@example.com", "password": "Aa123456", "full_name": "Alice"}
     response = client.post("/api/v1/auth/register", json=payload)
@@ -50,7 +66,11 @@ def test_register_user_returns_basic_profile(client: TestClient) -> None:
 
 
 def test_register_duplicate_email_returns_400(client: TestClient) -> None:
-    """重复邮箱注册应提示 400。"""
+    """重复邮箱注册应提示 400。
+
+    Args:
+        client (TestClient): 测试客户端。
+    """
 
     _register_user(client, email="bob@example.com")
     payload = {"email": "bob@example.com", "password": "Aa123456", "full_name": "Bob"}
@@ -59,7 +79,11 @@ def test_register_duplicate_email_returns_400(client: TestClient) -> None:
 
 
 def test_login_returns_tokens(client: TestClient) -> None:
-    """登录成功应返回 access/refresh token。"""
+    """验证登录接口返回 token 对。
+
+    Args:
+        client (TestClient): 测试客户端。
+    """
 
     _register_user(client)
     response = client.post(
@@ -73,7 +97,11 @@ def test_login_returns_tokens(client: TestClient) -> None:
 
 
 def test_me_endpoint_requires_authentication(client: TestClient) -> None:
-    """/me 需要有效的 Bearer Token。"""
+    """确保 /me 需要合法的 Bearer Token。
+
+    Args:
+        client (TestClient): 测试客户端。
+    """
 
     _register_user(client)
     login_resp = client.post(
@@ -92,7 +120,11 @@ def test_me_endpoint_requires_authentication(client: TestClient) -> None:
 
 
 def test_refresh_returns_new_tokens(client: TestClient) -> None:
-    """刷新接口应返回新的 token 对。"""
+    """验证 refresh 接口返回新的 token 对。
+
+    Args:
+        client (TestClient): 测试客户端。
+    """
 
     _register_user(client)
     login_resp = client.post(
