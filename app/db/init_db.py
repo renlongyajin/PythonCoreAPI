@@ -18,11 +18,17 @@ def _import_model_modules() -> None:
     import app.apps.auth.models  # noqa: F401 导入即触发表注册
 
 
+def import_model_modules() -> None:
+    """公开方法用于确保模型已导入。"""
+
+    _import_model_modules()
+
+
 def init_db() -> None:
     """在当前数据库创建所有表结构。
     """
 
-    _import_model_modules()
+    import_model_modules()
     engine = get_engine()
     Base.metadata.create_all(bind=engine)
 
@@ -31,6 +37,6 @@ def drop_db() -> None:
     """删除所有注册模型对应的表。
     """
 
-    _import_model_modules()
+    import_model_modules()
     engine = get_engine()
     Base.metadata.drop_all(bind=engine)
