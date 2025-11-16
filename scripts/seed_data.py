@@ -11,7 +11,6 @@ from app.apps.auth.models import Role, User
 from app.core.security import get_password_hash
 from app.db.session import SessionLocal
 from app.db.init_db import import_model_modules
-from app.core.config import get_settings
 
 DEFAULT_ROLES: tuple[tuple[str, str], ...] = (
     ("admin", "系统管理员"),
@@ -100,7 +99,6 @@ def main() -> None:
     """CLI 入口：连接数据库并写入默认数据。"""
 
     import_model_modules()
-    settings = get_settings()
     with SessionLocal() as session:
         seed_base_data(session)
 

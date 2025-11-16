@@ -45,7 +45,7 @@ def test_create_user_and_query_by_email(db: Session) -> None:
         db (Session): 预置的内存数据库会话。
     """
 
-    from app.apps.auth.repository import RoleRepository, UserRepository
+    from app.apps.auth.repository import UserRepository
 
     user_repo = UserRepository()
     created = user_repo.create(
