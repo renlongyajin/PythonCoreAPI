@@ -8,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes.health import router as health_router
 from app.apps.auth.router import router as auth_router
 from app.core.config import Settings, get_settings
+from app.core.exception import register_exception_handlers
+from app.core.logging import configure_logging
+from app.core.middleware import TraceIdMiddleware
 
 
 def create_app() -> FastAPI:
@@ -18,20 +21,19 @@ def create_app() -> FastAPI:
     """
 
     settings = get_settings()
+    configure_logging(settings)
     app = FastAPI(title=settings.app_name, version=settings.api_version)
 
     _register_middlewares(app)
+    register_exception_handlers(app)
     _register_routes(app, settings)
     return app
 
 
 def _register_middlewares(app: FastAPI) -> None:
-    """注册全局中间件，如 CORS。"
+    """注册全局中间件，如 CORS 与 trace_id。"""
 
-    Args:
-        app (FastAPI): 目标应用实例。
-    """
-
+    app.add_middleware(TraceIdMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],

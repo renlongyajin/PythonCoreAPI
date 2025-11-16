@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from pathlib import Path
 
 import pytest
 
@@ -59,3 +60,15 @@ def test_get_settings_returns_cached_instance() -> None:
     first = get_settings()
     second = get_settings()
     assert first is second
+
+
+def test_settings_reads_custom_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """验证 APP_ENV_FILE 可覆盖默认 env 文件。"""
+
+    env_file = tmp_path / "custom.env"
+    env_file.write_text("APP_NAME=EnvFileApp\nLOG_LEVEL=debug\n", encoding="utf-8")
+    monkeypatch.setenv("APP_ENV_FILE", str(env_file))
+
+    settings = get_settings()
+    assert settings.app_name == "EnvFileApp"
+    assert settings.log_level == "debug"

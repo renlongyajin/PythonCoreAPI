@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
+import os
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 
 class Settings(BaseSettings):
@@ -25,6 +29,7 @@ class Settings(BaseSettings):
     celery_broker_url: str = "redis://localhost:6379/1"
     celery_result_backend: str = "redis://localhost:6379/1"
     openai_api_key: str = "sk-placeholder"
+    log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -43,4 +48,25 @@ def get_settings() -> Settings:
         Settings: 已加载且缓存的配置实例。
     """
 
-    return Settings()
+    return Settings(_env_file=_resolve_env_files())
+
+
+def _resolve_env_files() -> tuple[str, ...]:
+    """根据 APP_ENV/APP_ENV_FILE 推导优先级化的 env 文件列表。"""
+
+    override = os.getenv("APP_ENV_FILE")
+    if override:
+        files = [path.strip() for path in override.split(",") if path.strip()]
+        return tuple(files)
+
+    files: list[str] = []
+    default_file = BASE_DIR / ".env"
+    files.append(str(default_file))
+
+    env_name = os.getenv("APP_ENV")
+    if env_name:
+        candidate = BASE_DIR / f".env.{env_name}"
+        if candidate.exists():
+            files.append(str(candidate))
+
+    return tuple(files)
