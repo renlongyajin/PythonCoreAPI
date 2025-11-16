@@ -6,12 +6,12 @@ from collections.abc import Generator
 from pathlib import Path
 
 import pytest
-from sqlalchemy import select, create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.apps.auth.models import Role, User
 from app.db.base import Base
 from app.db.init_db import import_model_modules
-from app.apps.auth.models import Role, User
 
 
 @pytest.fixture(name="db")
@@ -39,7 +39,7 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
 
 
 def test_seed_base_data_creates_roles_and_admin(db: Session) -> None:
-    """首次执行应生成默认角色与管理员。"""
+    """首次执行应生成默认角色、管理员及角色关联。"""
 
     from scripts.seed_data import seed_base_data
 
@@ -51,6 +51,7 @@ def test_seed_base_data_creates_roles_and_admin(db: Session) -> None:
     admin = db.execute(select(User).where(User.email == "admin@example.com")).scalar_one()
     assert admin.full_name == "Administrator"
     assert admin.is_active
+    assert {role.name for role in admin.roles} == {"admin"}
 
 
 def test_seed_base_data_is_idempotent(db: Session) -> None:
@@ -65,3 +66,6 @@ def test_seed_base_data_is_idempotent(db: Session) -> None:
     users = db.execute(select(User)).scalars().all()
     assert len(roles) == 2
     assert len(users) == 1
+
+    admin = db.execute(select(User).where(User.email == "admin@example.com")).scalar_one()
+    assert {role.name for role in admin.roles} == {"admin"}

@@ -1,3 +1,4 @@
 /codex_prompt
 .vscode/
 __pycache__
+.env

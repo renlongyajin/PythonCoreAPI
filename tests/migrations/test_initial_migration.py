@@ -48,6 +48,27 @@ def test_upgrade_creates_auth_tables(alembic_cfg: Config) -> None:
     tables = set(inspector.get_table_names())
     assert {"users", "roles", "user_roles"}.issubset(tables)
 
+    user_columns = {col["name"] for col in inspector.get_columns("users")}
+    expected_user_cols = {"id", "email", "password_hash", "full_name", "is_active", "created_at", "updated_at"}
+    assert expected_user_cols.issubset(user_columns)
+
+    email_unique_constraints = [
+        constraint
+        for constraint in inspector.get_unique_constraints("users")
+        if set(constraint.get("column_names", [])) == {"email"}
+    ]
+    assert email_unique_constraints, "users.email 需具备唯一约束"
+
+    junction_columns = {col["name"] for col in inspector.get_columns("user_roles")}
+    assert {"user_id", "role_id"}.issubset(junction_columns)
+
+    junction_unique = [
+        constraint
+        for constraint in inspector.get_unique_constraints("user_roles")
+        if set(constraint.get("column_names", [])) == {"user_id", "role_id"}
+    ]
+    assert junction_unique, "user_roles 需具备联合唯一约束"
+
 
 def test_downgrade_drops_tables(alembic_cfg: Config) -> None:
     """验证 downgrade base 会删除用户/角色相关表。
@@ -60,4 +81,7 @@ def test_downgrade_drops_tables(alembic_cfg: Config) -> None:
     command.downgrade(alembic_cfg, "base")
     engine = create_engine(alembic_cfg.get_main_option("sqlalchemy.url"))
     inspector = inspect(engine)
-    assert "users" not in inspector.get_table_names()
+    tables = inspector.get_table_names()
+    assert "users" not in tables
+    assert "roles" not in tables
+    assert "user_roles" not in tables
